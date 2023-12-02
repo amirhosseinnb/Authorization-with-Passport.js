@@ -23,7 +23,13 @@ router.post("/register", async (req, res, next) => {
   try {
     const { fullname: fullName, username, password } = req.body;
     const hashPassword = hashSync(password, 10);
-    const user = await userModel.create({
+    const user = await userModel.findOne({ username });
+    if (user) {
+      const referrer = req?.header("Referrer") ?? req.headers.referer;
+      req.flash("error", "this username already exist");
+      return res.redirect(referrer ?? "/register");
+    }
+    await userModel.create({
       fullName,
       username,
       password,
